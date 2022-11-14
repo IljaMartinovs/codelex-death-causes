@@ -30,7 +30,7 @@ class DataCollection
         $data = [];
         foreach ($this->data as $value) {
             $data[] = $value->getnonViolentDeath();
-        }
+        } 
         return array_count_values(array_merge(...$data));
     }
 
