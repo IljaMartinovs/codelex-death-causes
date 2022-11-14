@@ -1,72 +1,52 @@
 <?php
-require_once 'Row.php';
 
-$data = [];
+require_once "Data.php";
+require_once "DataCollection.php";
+
+$allData = new DataCollection();
+
 $index = 1;
+
 if (($handle = fopen("vtmec-causes-of-death.csv", "r")) !== false) {
-    while (($row = fgetcsv($handle, 1000)) !== false) {
-        switch ($row[2]) {
-            case "Vardarbīga nāve":
-                $data[] = new Row([$row[2], $row[4], $row[5]]);
-                break;
-            case "Nevardarbīga nāve":
-                $data[] = new Row([$row[2], $row[3]]);
-                break;
-            case "Nāves cēlonis nav noteikts":
-                $data[] = new Row([$row[2]]);
-        }
+    while (($data = fgetcsv($handle, 1000)) !== false) {
+
+        $num = count($data);
         $index++;
-//        if($index > 30)
-//            break;
+        if ($index === 2) {
+            continue;
+        }
+        $allData->addData(new Data(
+            $data[2],
+            (array_filter(explode(";",$data[3]))),
+            (array_filter(explode(";",$data[4]))),
+           (array_filter(explode(";",$data[5]))),
+        ));
+
     }
     fclose($handle);
 }
 
-$vardarbiga = 0; $varNave = [];// Vardarbīga nāve
-$nevardarbiga = 0; $nevNave = [];// Nevardarbīga nāve
-$nav_noteikts = 0; // Nāves cēlonis nav noteikts
+$deathReasons = [];
 
-for($i=0; $i < count($data); $i++) {
-    if (count($data[$i]->getRow()) == 1)
-        $nav_noteikts++;
-    else if (count($data[$i]->getRow()) == 2) {
-        $nevardarbiga++;
-        array_push($nevNave,$data[$i]->getRow()[1]);
-    }
+foreach ($allData->deathReasonCounter() as $key => $value) {
+    $deathReasons[] = "$key - $value";
+}
+echo $deathReasons[1] . PHP_EOL;
+echo "----------------------------------\n";
+echo $deathReasons[0] . PHP_EOL;
+echo "----------------------------------\n";
 
-    else if (count($data[$i]->getRow()) == 3){
-        $vardarbiga++;
-        array_push($varNave,$data[$i]->getRow()[1]);
-    }
-
+foreach ($allData->nonViolentCounter() as $key => $value){
+    echo "$key - $value" . PHP_EOL;
 }
 
-$nevNave = array_unique($nevNave);
-$nevNave = array_values($nevNave);
+echo "----------------------------------\n";
+echo $deathReasons[2] . PHP_EOL;
+echo "----------------------------------\n";
 
-$varNave = array_unique($varNave);
-$varNave = array_values($varNave);
-
-do {
-    echo "\n1. Izvadīt nāves skaitu\n";
-    echo "2. Izvadīt Nevardarbīga nāves detalizetaku informaciju\n";
-    echo "3. Izvadīt Vardarbīga nāves detalizetaku informaciju\n";
-    do {
-        $inputSelect = (int)readline("Ievadiet ciparu (0-6): \n");
-    } while ($inputSelect > 4 || $inputSelect < 0);
-
-    switch ($inputSelect){
-        case 1:
-            echo "\nVardarbīga nāve - $vardarbiga\n";
-            echo "Nevardarbīga nāve - $nevardarbiga\n";
-            echo "Nāves cēlonis nav noteikts - $nav_noteikts\n";
-            break;
-
-        case 2:
-            print_r($nevNave);
-            break;
-        case 3:
-            print_r($varNave);
-            break;
-    }
-} while ($inputSelect !== 0);
+foreach ($allData->violentDeathCounter() as $key => $value){
+    echo "$key - $value" . PHP_EOL;
+}
+foreach ($allData->violentDeathCounter() as $key => $value){
+    echo "$key - $value" . PHP_EOL;
+}
